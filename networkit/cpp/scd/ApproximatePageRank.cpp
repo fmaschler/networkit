@@ -21,20 +21,21 @@ ApproximatePageRank::ApproximatePageRank(const Graph& g, double alpha_, double e
 void ApproximatePageRank::push(node u, std::set<node>& activeNodes)
 {
 	double res = pr_res[u].second;
-	double mass = oneMinusAlphaOver2 * res / G.degree(u);
+	double mass = oneMinusAlphaOver2 * res;
 
 	G.forNeighborsOf(u, [&](node v) {
 		if (pr_res.find(v) == pr_res.end()) {
 			pr_res[v] = std::pair<double, double>(0.0, 0.0);
 		}
-		pr_res[v] = std::pair<double, double>(pr_res[v].first, pr_res[v].second + mass);
-		if ((pr_res[v].second / G.degree(v)) >= eps) {
+		pr_res[v] = std::pair<double, double>(pr_res[v].first,
+			pr_res[v].second + mass * G.weight(u, v) / G.weightedDegree(u));
+		if ((pr_res[v].second / G.weightedDegree(v)) >= eps) {
 			activeNodes.insert(v);
 		}
 	});
 
-	pr_res[u] = std::pair<double, double>(pr_res[u].first + alpha * res, oneMinusAlphaOver2 * res);
-	if ((pr_res[u].second / G.degree(u)) >= eps) {
+	pr_res[u] = std::pair<double, double>(pr_res[u].first + alpha * res, mass);
+	if ((pr_res[u].second / G.weightedDegree(u)) >= eps) {
 		activeNodes.insert(u);
 	}
 }

@@ -15,7 +15,11 @@
 namespace NetworKit {
 
 PageRankNibble::PageRankNibble(Graph& g, double alpha, double epsilon): SelectiveCommunityDetector(g), alpha(alpha), epsilon(epsilon) {
-	assert(!g.isWeighted());
+graphVolume = 0.0;
+G.parallelForNodes([&](node u) {
+    graphVolume += G.volume(u);
+});
+TRACE("Graph Volume: ", graphVolume);
 }
 
 PageRankNibble::~PageRankNibble() {
@@ -30,7 +34,7 @@ std::set<node> PageRankNibble::bestSweepSet(std::vector<std::pair<node, double>>
 	// order vertices
 	TRACE("Before sorting");
 	auto comp([&](const std::pair<node, double>& a, const std::pair<node, double>& b) {
-		return (a.second / G.degree(a.first)) > (b.second / G.degree(b.first));
+		return (a.second / G.weightedDegree(a.first)) > (b.second / G.weightedDegree(b.first));
 	});
 	Aux::Parallel::sort(pr.begin(), pr.end(), comp);
 	TRACE("After sorting");
@@ -38,7 +42,6 @@ std::set<node> PageRankNibble::bestSweepSet(std::vector<std::pair<node, double>>
 	for (std::vector<std::pair<node, double>>::iterator it = pr.begin(); it != pr.end(); it++) {
 		TRACE("(", it->first, ", ", it->second, ")");
 	}
-
 
 	// find best sweep set w.r.t. conductance
 	double bestCond = std::numeric_limits<double>::max();
@@ -53,9 +56,9 @@ std::set<node> PageRankNibble::bestSweepSet(std::vector<std::pair<node, double>>
 		node v = it->first;
 		G.forNeighborsOf(v, [&](node neigh) {
 			if (withinSweepSet.find(neigh) == withinSweepSet.end()) {
-				cut++;
+				cut += G.weight(v, neigh);
 			} else {
-				cut--;
+				cut -= G.weight(v, neigh);
 			}
 		});
 		volume += G.volume(v);
@@ -63,13 +66,13 @@ std::set<node> PageRankNibble::bestSweepSet(std::vector<std::pair<node, double>>
 		withinSweepSet[v] = true;
 
 		// compute conductance
-		double cond = cut / fmin(volume, 2 * G.numberOfEdges() - volume);
+		double cond = cut / fmin(volume, graphVolume - volume);
 
 		std::stringstream debug;
 
 		debug << "Current vertex: " << v << "; Current sweep set conductance: " << cond << std::endl;
 		debug << "Current cut weight: " << cut << "; Current volume: " << volume << std::endl;
-		debug << "Total graph volume: " << 2 * G.numberOfEdges() << std::endl;
+		debug << "Total graph volume: " << graphVolume << std::endl;
 
 		TRACE(debug.str());
 

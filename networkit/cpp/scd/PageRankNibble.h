@@ -28,13 +28,13 @@ protected:
 
 	double alpha;
 	double epsilon;
+	double graphVolume;
 
 	std::set<node> bestSweepSet(std::vector<std::pair<node, double>>& pr);
 
 public:
 	/**
-	 * @param Graph @a g for which PageRank-Nibble is to be performed. Is treated as
-	 * unweighted in current implementation.
+	 * @param Graph @a g for which PageRank-Nibble is to be performed.
 	 * @param alpha Loop probability of random walk; smaller values tend to produce larger
 	 *        communities.
 	 * @param eps Tolerance threshold for approximation of PageRank vectors.
