@@ -38,6 +38,42 @@ TEST_F(SCDGTest2, testPageRankNibble) {
 	INFO("Conductance of PR-Nibble: ", cond, "; seed partition size: ", cluster_size, "; number of partitions: ", partition.numberOfSubsets());
 }
 
+TEST_F(SCDGTest2, testWeightedPageRankNibble) {
+	METISGraphReader reader;
+	Graph wG = reader.read("input/lesmis.graph");
+	// parameters
+	node seed = 50;
+	std::set<unsigned int> seeds = {(unsigned int) seed};
+	double alpha = 0.1; // loop (or teleport) probability, changed due to DGleich from: // phi * phi / (225.0 * log(100.0 * sqrt(m)));
+	double epsilon = 1e-5; // changed due to DGleich from: pow(2, exponent) / (48.0 * B);
+
+	Graph G = wG.toUnweighted();
+	PageRankNibble prn(G, alpha, epsilon);
+	PageRankNibble wPrn(wG, alpha, epsilon);
+
+	// run PageRank-Nibble and partition the graph accordingly
+	DEBUG("Call PageRank-Nibble(", seed, ")");
+	auto partition = prn.runPartition(seeds);
+	auto wPartition = wPrn.runPartition(seeds);
+
+	EXPECT_GT(partition.numberOfSubsets(), 1u);
+	EXPECT_GT(wPartition.numberOfSubsets(), 1u);
+
+	int size = partition.subsetSizeMap()[partition[seed]];
+	int wSize = wPartition.subsetSizeMap()[wPartition[seed]];
+	EXPECT_GT(size, 0u);
+	EXPECT_GT(wSize, 0u);
+	EXPECT_NE(size, wSize);
+
+	// evaluate result
+	Conductance conductance;
+	double cond = conductance.getQuality(partition, G);
+	double wCond = conductance.getQuality(wPartition, wG);
+	// 80% of the time the result is better, otherwise the test fails
+	EXPECT_LT(wCond, cond);
+	INFO(wCond);
+	INFO("Conductance of weighted PR-Nibble: ", wCond, "; unweighted: ", cond);
+}
 
 } /* namespace NetworKit */
 
