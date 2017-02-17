@@ -43,14 +43,21 @@ public:
 
 	virtual ~PageRankNibble();
 
-	virtual std::map<node, std::set<node> >  run(std::set<unsigned int>& seeds);
+	virtual std::map<node, std::set<node> > run(std::set<unsigned int>& seeds);
 
-
-		/**
+	/**
 	 * @param seed Seed node for which a community is to be found.
 
 	 * @return Set of nodes that makes up the best community found around node @a seed.
 	 *   If target conductance or target size are not fulfilled, an empty set is returned.
+	 */
+
+	NetworKit::Partition runPartition(std::set<unsigned int>& seeds);
+	 /**
+	 * @param seed Seed nodes for which communities are to be found.
+
+	 * @return Partition that makes up the best communities found around nodes @a seed.
+	 *   If target conductance or target size are not fulfilled, a singleton Partition is returned.
 	 */
 	std::set<node> expandSeed(node seed);
 };

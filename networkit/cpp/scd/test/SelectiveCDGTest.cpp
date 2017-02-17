@@ -21,29 +21,21 @@ TEST_F(SCDGTest2, testPageRankNibble) {
 	double epsilon = 1e-5; // changed due to DGleich from: pow(2, exponent) / (48.0 * B);
 
 	PageRankNibble prn(G, alpha, epsilon);
-	count idBound = G.upperNodeIdBound();
 
 	// run PageRank-Nibble and partition the graph accordingly
 	DEBUG("Call PageRank-Nibble(", seed, ")");
-	auto result = prn.run(seeds);
-	auto cluster = result[seed];
+	auto partition = prn.runPartition(seeds);
 
-	// prepare result
-	EXPECT_GT(cluster.size(), 0u);
-	Partition partition(idBound);
-	partition.allToOnePartition();
-	partition.toSingleton(50);
-	index id = partition[seed];
-	for (auto entry: cluster) {
-		partition.moveToSubset(id, entry);
-	}
+	EXPECT_GT(partition.numberOfSubsets(), 1u);
+	int cluster_size = partition.subsetSizeMap()[partition[seed]];
+	EXPECT_GT(cluster_size, 0u);
 
 	// evaluate result
 	Conductance conductance;
 	double targetCond = 0.4;
 	double cond = conductance.getQuality(partition, G);
 	EXPECT_LT(cond, targetCond);
-	INFO("Conductance of PR-Nibble: ", cond, "; cluster size: ", cluster.size());
+	INFO("Conductance of PR-Nibble: ", cond, "; seed partition size: ", cluster_size, "; number of partitions: ", partition.numberOfSubsets());
 }
 
 

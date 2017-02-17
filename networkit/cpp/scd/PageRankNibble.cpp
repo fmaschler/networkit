@@ -15,11 +15,11 @@
 namespace NetworKit {
 
 PageRankNibble::PageRankNibble(Graph& g, double alpha, double epsilon): SelectiveCommunityDetector(g), alpha(alpha), epsilon(epsilon) {
-graphVolume = 0.0;
-G.parallelForNodes([&](node u) {
-    graphVolume += G.volume(u);
-});
-TRACE("Graph Volume: ", graphVolume);
+	graphVolume = 0.0;
+	G.parallelForNodes([&](node u) {
+		graphVolume += G.volume(u);
+	});
+	TRACE("Graph Volume: ", graphVolume);
 }
 
 PageRankNibble::~PageRankNibble() {
@@ -100,13 +100,28 @@ std::set<node> PageRankNibble::expandSeed(node seed) {
 	return s;
 }
 
-std::map<node, std::set<node> >  PageRankNibble::run(std::set<unsigned int>& seeds) {
-    std::map<node, std::set<node> > result;
+std::map<node, std::set<node> > PageRankNibble::run(std::set<unsigned int>& seeds) {
+	std::map<node, std::set<node> > result;
 	for (auto seed : seeds) {
 		auto community = expandSeed(seed);
 		result[seed] = community;
 	}
-    return result;
+	return result;
+}
+
+Partition PageRankNibble::runPartition(std::set<unsigned int>& seeds) {
+	auto result = run(seeds);
+	Partition partition(G.upperNodeIdBound());
+	partition.allToOnePartition();
+	for (auto seed : seeds) {
+		partition.toSingleton(seed);
+		index id = partition[seed];
+		auto cluster = result[seed];
+		for (auto entry: cluster) {
+			partition.moveToSubset(id, entry);
+		}
+	}
+	return partition;
 }
 
 } /* namespace NetworKit */
