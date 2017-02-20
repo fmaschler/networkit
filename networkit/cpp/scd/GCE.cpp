@@ -194,4 +194,9 @@ std::set<node> GCE::expandSeed(node s) {
 	return community;
 }
 
+Partition GCE::runPartition(std::set<unsigned int>& seeds) {
+	Partition partition(G.upperNodeIdBound());
+	return partition;
+}
+
 } /* namespace NetworKit */

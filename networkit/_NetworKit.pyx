@@ -6624,6 +6624,7 @@ cdef extern from "cpp/scd/PageRankNibble.h":
 	cdef cppclass _PageRankNibble "NetworKit::PageRankNibble":
 		_PageRankNibble(_Graph G, double alpha, double epsilon) except +
 		map[node, set[node]] run(set[unsigned int] seeds) except +
+		_Partition runPartition(set[unsigned int] seeds) except +
 
 cdef class PageRankNibble:
 	"""
@@ -6632,7 +6633,7 @@ cdef class PageRankNibble:
 
 	Parameters:
 	-----------
-	G : graph in which the cut is to be produced, must be unweighted.
+	G : graph in which the cut is to be produced.
 	alpha : Loop probability of random walk; smaller values tend to produce larger communities.
 	epsilon: Tolerance threshold for approximation of PageRank vectors
 	"""
@@ -6652,6 +6653,16 @@ cdef class PageRankNibble:
 		seeds : the seed node ids.
 		"""
 		return self._this.run(seeds)
+
+	def runPartition(self, set[unsigned int] seeds):
+		"""
+		Produces a cut around a given seed node and returns a Partition.
+
+		Parameters:
+		-----------
+		seeds : the seed node ids.
+		"""
+		return Partition().setThis(self._this.runPartition(seeds))
 
 cdef extern from "cpp/scd/GCE.h":
 	cdef cppclass _GCE "NetworKit::GCE":

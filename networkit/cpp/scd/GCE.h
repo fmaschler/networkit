@@ -38,6 +38,14 @@ public:
 	 */
 	std::set<node> expandSeed(node s);
 
+	NetworKit::Partition runPartition(std::set<unsigned int>& seeds);
+	 /**
+	  * Not Implemented yet, returns empty Partition!
+	 * @param seed Seed nodes for which communities are to be found.
+
+	 * @return Partition that makes up the best communities found around nodes @a seed.
+	 */
+
 protected:
 
     std::string objective;    // name of objective function
