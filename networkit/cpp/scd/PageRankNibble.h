@@ -29,8 +29,9 @@ protected:
 	double alpha;
 	double epsilon;
 	double graphVolume;
+    std::vector<std::pair<node, double>> seed_cond;
 
-	std::set<node> bestSweepSet(std::vector<std::pair<node, double>>& pr);
+	std::pair<std::set<node>, double> bestSweepSet(std::vector<std::pair<node, double>>& pr);
 
 public:
 	/**

@@ -27,7 +27,7 @@ PageRankNibble::~PageRankNibble() {
 }
 
 
-std::set<node> PageRankNibble::bestSweepSet(std::vector<std::pair<node, double>>& pr) {
+std::pair<std::set<node>, double> PageRankNibble::bestSweepSet(std::vector<std::pair<node, double>>& pr) {
 	TRACE("Support size: ", pr.size());
 
 
@@ -87,8 +87,7 @@ std::set<node> PageRankNibble::bestSweepSet(std::vector<std::pair<node, double>>
 	for (index j = 0; j < bestSweepSetIndex; j++) {
 		bestSweepSet.insert(currentSweepSet[j]);
 	}
-
-	return bestSweepSet;
+	return std::pair<std::set<node>, double>(bestSweepSet, bestCond);
 }
 
 
@@ -96,12 +95,14 @@ std::set<node> PageRankNibble::expandSeed(node seed) {
 	DEBUG("APR(G, ", alpha, ", ", epsilon, ")");
 	ApproximatePageRank apr(G, alpha, epsilon);
 	std::vector<std::pair<node, double>> pr = apr.run(seed);
-	std::set<node> s = bestSweepSet(pr);
-	return s;
+	std::pair<std::set<node>, double> set_cond = bestSweepSet(pr);
+	seed_cond.push_back(std::pair<node, double>(seed, set_cond.second));
+	return set_cond.first;
 }
 
 std::map<node, std::set<node> > PageRankNibble::run(std::set<unsigned int>& seeds) {
 	std::map<node, std::set<node> > result;
+	seed_cond = std::vector<std::pair<node, double>>();
 	for (auto seed : seeds) {
 		auto community = expandSeed(seed);
 		result[seed] = community;
@@ -113,12 +114,22 @@ Partition PageRankNibble::runPartition(std::set<unsigned int>& seeds) {
 	auto result = run(seeds);
 	Partition partition(G.upperNodeIdBound());
 	partition.allToOnePartition();
-	for (auto seed : seeds) {
+	// sort conductance ascending
+	auto comp([&](const std::pair<node, double>& a, const std::pair<node, double>& b) {
+		return (a.second) < (b.second);
+	});
+	Aux::Parallel::sort(seed_cond.begin(), seed_cond.end(), comp);
+	for (std::vector<std::pair<node, double>>::iterator it = seed_cond.begin(); it != seed_cond.end(); it++) {
+		node seed = it->first;
 		partition.toSingleton(seed);
 		index id = partition[seed];
 		auto cluster = result[seed];
 		for (auto entry: cluster) {
-			partition.moveToSubset(id, entry);
+			// only move unassigned nodes from first partition
+			// leave partition with lower conductance
+			if (partition[entry] == 0) {
+				partition.moveToSubset(id, entry);
+			}
 		}
 	}
 	return partition;
