@@ -54,26 +54,22 @@ TEST_F(SCDGTest2, testWeightedPageRankNibble) {
     double cond = 0;
     double wCond = 0;
 	// run PageRank-Nibble and partition the graph accordingly
-	DEBUG("Call PageRank-Nibble ten times to average conductance(", seed, ")");
-    for (int i=0; i<10; i++) {
-        auto partition = prn.runPartition(seeds);
-        auto wPartition = wPrn.runPartition(seeds);
+	DEBUG("Call PageRank-Nibble(", seed, ")");
+    auto partition = prn.runPartition(seeds);
+    auto wPartition = wPrn.runPartition(seeds);
 
-        EXPECT_GT(partition.numberOfSubsets(), 1u);
-        EXPECT_GT(wPartition.numberOfSubsets(), 1u);
+    EXPECT_GT(partition.numberOfSubsets(), 1u);
+    EXPECT_GT(wPartition.numberOfSubsets(), 1u);
+    int size = partition.subsetSizeMap()[partition[seed]];
+    int wSize = wPartition.subsetSizeMap()[wPartition[seed]];
+    EXPECT_GT(size, 0u);
+    EXPECT_GT(wSize, 0u);
 
-        int size = partition.subsetSizeMap()[partition[seed]];
-        int wSize = wPartition.subsetSizeMap()[wPartition[seed]];
-        EXPECT_GT(size, 0u);
-        EXPECT_GT(wSize, 0u);
-
-        // evaluate result
-        Conductance conductance;
-        cond = cond + conductance.getQuality(partition, G);
-        wCond = wCond + conductance.getQuality(wPartition, wG);
-    }
+    // evaluate result
+    Conductance conductance;
+    cond = conductance.getQuality(partition, G);
+    wCond = conductance.getQuality(wPartition, wG);
 	EXPECT_LT(wCond, cond);
-	INFO(wCond);
 	INFO("Conductance of weighted PR-Nibble: ", wCond, "; unweighted: ", cond);
 }
 

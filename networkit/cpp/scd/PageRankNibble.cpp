@@ -16,7 +16,7 @@ namespace NetworKit {
 
 PageRankNibble::PageRankNibble(Graph& g, double alpha, double epsilon): SelectiveCommunityDetector(g), alpha(alpha), epsilon(epsilon) {
 	graphVolume = 0.0;
-	G.parallelForNodes([&](node u) {
+	G.forNodes([&](node u) {
 		graphVolume += G.volume(u);
 	});
 	TRACE("Graph Volume: ", graphVolume);
