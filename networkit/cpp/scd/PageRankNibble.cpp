@@ -121,15 +121,21 @@ Partition PageRankNibble::runPartition(std::set<unsigned int>& seeds) {
 	Aux::Parallel::sort(seed_cond.begin(), seed_cond.end(), comp);
 	for (std::vector<std::pair<node, double>>::iterator it = seed_cond.begin(); it != seed_cond.end(); it++) {
 		node seed = it->first;
+		index id_old = partition[seed];
 		partition.toSingleton(seed);
 		index id = partition[seed];
 		auto cluster = result[seed];
 		for (auto entry: cluster) {
 			// only move unassigned nodes from first partition
-			// leave partition with lower conductance
+			// leave partition with better conductance
 			if (partition[entry] == 0) {
 				partition.moveToSubset(id, entry);
 			}
+		}
+		// revert partitions that only consist of the seed
+		if (partition.getMembers(id).size() == 1) {
+			INFO("Revert singleton parition at ", seed);
+			partition.moveToSubset(id_old, seed);
 		}
 	}
 	return partition;

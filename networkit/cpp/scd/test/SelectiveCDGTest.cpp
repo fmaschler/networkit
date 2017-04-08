@@ -60,8 +60,8 @@ TEST_F(SCDGTest2, testWeightedPageRankNibble) {
 
     EXPECT_GT(partition.numberOfSubsets(), 1u);
     EXPECT_GT(wPartition.numberOfSubsets(), 1u);
-    int size = partition.subsetSizeMap()[partition[seed]];
-    int wSize = wPartition.subsetSizeMap()[wPartition[seed]];
+    int size = partition.getMembers(partition[seed]).size();
+    int wSize = wPartition.getMembers(wPartition[seed]).size();
     EXPECT_GT(size, 0u);
     EXPECT_GT(wSize, 0u);
 
