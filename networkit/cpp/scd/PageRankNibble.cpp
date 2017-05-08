@@ -7,86 +7,76 @@
 
 #include "PageRankNibble.h"
 #include "ApproximatePageRank.h"
-#include "../community/Conductance.h"
 #include "../auxiliary/Parallel.h"
-#include <cmath>
 #include <vector>
+#include <algorithm>
+#include <unordered_set>
 
 namespace NetworKit {
 
 PageRankNibble::PageRankNibble(Graph& g, double alpha, double epsilon): SelectiveCommunityDetector(g), alpha(alpha), epsilon(epsilon) {
-	graphVolume = 0.0;
-	G.forNodes([&](node u) {
-		graphVolume += G.volume(u);
-	});
-	TRACE("Graph Volume: ", graphVolume);
-}
-
-PageRankNibble::~PageRankNibble() {
 
 }
 
 
 std::pair<std::set<node>, double> PageRankNibble::bestSweepSet(std::vector<std::pair<node, double>>& pr) {
-	TRACE("Support size: ", pr.size());
-
-
+	TRACE("Finding best sweep set. Support size: ",  pr.size());
 	// order vertices
 	TRACE("Before sorting");
+	for (size_t i = 0; i < pr.size(); i++) {
+		pr[i].second = pr[i].second / G.volume(pr[i].first);
+	}
 	auto comp([&](const std::pair<node, double>& a, const std::pair<node, double>& b) {
-		return (a.second / G.weightedDegree(a.first)) > (b.second / G.weightedDegree(b.first));
+		return a.second > b.second;
 	});
 	Aux::Parallel::sort(pr.begin(), pr.end(), comp);
 	TRACE("After sorting");
 
-	for (std::vector<std::pair<node, double>>::iterator it = pr.begin(); it != pr.end(); it++) {
+	#ifndef NDEBUG
+	for (auto it = pr.begin(); it != pr.end(); it++) {
 		TRACE("(", it->first, ", ", it->second, ")");
 	}
+	#endif
 
 	// find best sweep set w.r.t. conductance
 	double bestCond = std::numeric_limits<double>::max();
 	double cut = 0.0;
 	double volume = 0.0;
 	index bestSweepSetIndex = 0;
-	std::unordered_map<node, bool> withinSweepSet;
+	std::unordered_set<node> withinSweepSet;
 	std::vector<node> currentSweepSet;
 
-	for (std::vector<std::pair<node, double>>::iterator it = pr.begin(); it != pr.end(); it++) {
+	// generate total volume.
+	double totalVolume = G.totalEdgeWeight() * 2;
+
+	for (auto it = pr.begin(); it != pr.end(); it++) {
 		// update sweep set
 		node v = it->first;
-		G.forNeighborsOf(v, [&](node neigh) {
+		double wDegree = 0.0;
+		G.forNeighborsOf(v, [&](node, node neigh, edgeweight w) {
+			wDegree += w;
 			if (withinSweepSet.find(neigh) == withinSweepSet.end()) {
-				cut += G.weight(v, neigh);
+				cut += w;
 			} else {
-				cut -= G.weight(v, neigh);
+				cut -= w;
 			}
 		});
-		volume += G.volume(v);
+		volume += wDegree;
 		currentSweepSet.push_back(v);
-		withinSweepSet[v] = true;
+		withinSweepSet.insert(v);
 
 		// compute conductance
-		double cond = cut / fmin(volume, graphVolume - volume);
+		double cond = cut / std::min(volume, totalVolume - volume);
 
-		std::stringstream debug;
-
-		debug << "Current vertex: " << v << "; Current sweep set conductance: " << cond << std::endl;
-		debug << "Current cut weight: " << cut << "; Current volume: " << volume << std::endl;
-		debug << "Total graph volume: " << graphVolume << std::endl;
-
-		TRACE(debug.str());
-
-		if (cond < bestCond) {
+		if ((cond < bestCond) && (currentSweepSet.size() < G.numberOfNodes())) {
 			bestCond = cond;
 			bestSweepSetIndex = currentSweepSet.size();
 		}
 	}
 
-	std::set<node> bestSweepSet;
+	DEBUG("Best conductance: ", bestCond, "\n");
 
-	for (index j = 0; j < bestSweepSetIndex; j++) {
-		bestSweepSet.insert(currentSweepSet[j]);
-	}
+	std::set<node> bestSweepSet(currentSweepSet.begin(), currentSweepSet.begin() + bestSweepSetIndex);
 	return std::pair<std::set<node>, double>(bestSweepSet, bestCond);
 }
 

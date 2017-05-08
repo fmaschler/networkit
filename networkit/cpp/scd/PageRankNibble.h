@@ -9,7 +9,6 @@
 #define PAGERANKNIBBLE_H_
 
 #include <set>
-#include <unordered_map>
 #include "../graph/Graph.h"
 #include "SelectiveCommunityDetector.h"
 
@@ -28,7 +27,6 @@ protected:
 
 	double alpha;
 	double epsilon;
-	double graphVolume;
     std::vector<std::pair<node, double>> seed_cond;
 
 	std::pair<std::set<node>, double> bestSweepSet(std::vector<std::pair<node, double>>& pr);
@@ -42,9 +40,7 @@ public:
 	 */
 	PageRankNibble(Graph& g, double alpha, double epsilon);
 
-	virtual ~PageRankNibble();
-
-	virtual std::map<node, std::set<node> > run(std::set<unsigned int>& seeds);
+	virtual std::map<node, std::set<node> > run(std::set<unsigned int>& seeds) override;
 
 	/**
 	 * @param seed Seed node for which a community is to be found.
@@ -60,7 +56,7 @@ public:
 	 * @return Partition that makes up the best communities found around nodes @a seed.
 	 *   If target conductance or target size are not fulfilled, a singleton Partition is returned.
 	 */
-	std::set<node> expandSeed(node seed);
+	virtual std::set<node> expandSeed(node seed);
 };
 
 } /* namespace NetworKit */
