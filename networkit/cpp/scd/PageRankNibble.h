@@ -38,18 +38,21 @@ public:
 	 *        communities.
 	 * @param eps Tolerance threshold for approximation of PageRank vectors.
 	 */
-	PageRankNibble(Graph& g, double alpha, double epsilon);
+	PageRankNibble(const Graph& g, double alpha, double epsilon);
 
-	virtual std::map<node, std::set<node> > run(std::set<unsigned int>& seeds) override;
+	virtual ~PageRankNibble();
+
+	virtual std::map<node, std::set<node> > run(const std::set<node>& seeds) override;
 
 	/**
+
 	 * @param seed Seed node for which a community is to be found.
 
 	 * @return Set of nodes that makes up the best community found around node @a seed.
 	 *   If target conductance or target size are not fulfilled, an empty set is returned.
 	 */
 
-	NetworKit::Partition runPartition(std::set<unsigned int>& seeds);
+	NetworKit::Partition runPartition(const std::set<node>& seeds);
 	 /**
 	 * @param seed Seed nodes for which communities are to be found.
 

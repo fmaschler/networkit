@@ -29,7 +29,7 @@ public:
 	GCE(const Graph& G, std::string objective);
 
 
-	std::map<node, std::set<node> >  run(std::set<unsigned int>& seeds) override;
+	std::map<node, std::set<node> >  run(const std::set<node>& seeds) override;
 
 	/**
 	 * @param[in]	s	seed node
@@ -38,7 +38,7 @@ public:
 	 */
 	std::set<node> expandSeed(node s);
 
-	NetworKit::Partition runPartition(std::set<unsigned int>& seeds);
+	NetworKit::Partition runPartition(const std::set<node>& seeds);
 	 /**
 	  * Not Implemented yet, returns empty Partition!
 	 * @param seed Seed nodes for which communities are to be found.
@@ -49,7 +49,6 @@ public:
 protected:
 
     std::string objective;    // name of objective function
-    Aux::SetIntersector<node> intersector;    // efficient set intersections
 
 
 };

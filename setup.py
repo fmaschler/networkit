@@ -77,7 +77,7 @@ if sys.platform == 'Windows' and not scons_available:
 
 # compiler candidates
 # this list serves as a fallback when neither $CXX is set nor build.conf exists
-candidates = ["g++", "g++-6.1", "g++-6", "g++-5.3", "g++-5.2", "g++-5.1", "g++-5", "g++-4.9", "g++-4.8", "clang++", "clang++-3.8", "clang++-3.7"]
+candidates = ["g++", "g++-7", "g++-6.1", "g++-6", "g++-5.3", "g++-5.2", "g++-5.1", "g++-5", "g++-4.9", "g++-4.8", "clang++", "clang++-3.8", "clang++-3.7"]
 stdflag = None
 
 #######################################
@@ -272,7 +272,7 @@ do_cythonize = False
 # depending on the role in which the setup script is called, it will be determined if _NetworKit.pyx will be cythonized.
 build_ext_cmd = None
 # the `build_ext` command depends on the role of the setup script
-if not os.path.exists(".hg") and os.path.isfile("networkit/_NetworKit.cpp"):
+if not os.path.exists(".git") and not os.path.exists(".hg") and os.path.isfile("networkit/_NetworKit.cpp"):
 	#print("using pre-cythonized _NetworKit.cpp")
 	# we assume, were not in the repository, but installing networkit from a zip or via pip
 	if os.path.isfile("MANIFEST.in"):

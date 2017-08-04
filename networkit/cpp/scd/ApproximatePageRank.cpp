@@ -13,9 +13,7 @@
 namespace NetworKit {
 
 ApproximatePageRank::ApproximatePageRank(const Graph& g, double alpha_, double epsilon):
-		G(g), alpha(alpha_), eps(epsilon) {
-
-}
+		G(g), alpha(alpha_), eps(epsilon) {}
 
 void ApproximatePageRank::push(node u, std::queue<node>& activeNodes) {
 	double res = pr_res[u].second;

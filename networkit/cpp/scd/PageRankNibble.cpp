@@ -14,7 +14,11 @@
 
 namespace NetworKit {
 
-PageRankNibble::PageRankNibble(Graph& g, double alpha, double epsilon): SelectiveCommunityDetector(g), alpha(alpha), epsilon(epsilon) {
+PageRankNibble::PageRankNibble(const Graph& g, double alpha, double epsilon): SelectiveCommunityDetector(g), alpha(alpha), epsilon(epsilon) {
+
+}
+
+PageRankNibble::~PageRankNibble() {
 
 }
 
@@ -90,7 +94,7 @@ std::set<node> PageRankNibble::expandSeed(node seed) {
 	return set_cond.first;
 }
 
-std::map<node, std::set<node> > PageRankNibble::run(std::set<unsigned int>& seeds) {
+std::map<node, std::set<node> > PageRankNibble::run(const std::set<node>& seeds) {
 	std::map<node, std::set<node> > result;
 	seed_cond = std::vector<std::pair<node, double>>();
 	for (auto seed : seeds) {
@@ -100,7 +104,7 @@ std::map<node, std::set<node> > PageRankNibble::run(std::set<unsigned int>& seed
 	return result;
 }
 
-Partition PageRankNibble::runPartition(std::set<unsigned int>& seeds) {
+Partition PageRankNibble::runPartition(const std::set<node>& seeds) {
 	auto result = run(seeds);
 	Partition partition(G.upperNodeIdBound());
 	partition.allToOnePartition();
@@ -114,7 +118,7 @@ Partition PageRankNibble::runPartition(std::set<unsigned int>& seeds) {
 		index id_old = partition[seed];
 		partition.toSingleton(seed);
 		index id = partition[seed];
-		auto cluster = result[seed];
+		std::set<node> cluster = result[seed];
 		for (auto entry: cluster) {
 			// only move unassigned nodes from first partition
 			// leave partition with better conductance
